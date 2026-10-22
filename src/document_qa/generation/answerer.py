@@ -42,13 +42,16 @@ class LLMService:
         )
 
     def chat(self, messages: list[ChatMessage], task_name: str = "unknown", exclude_services: list[str] = None) -> str:
-        """One network retry for connection or 5xx. No retry on timeout or HTTP 429."""
-        retried_network = False
-        rate_limited = set(exclude_services or [])
+        """Try each service once for connection or 5xx. A timeout moves to one other service."""
+        skipped = set(exclude_services or [])
+        last_error = None
+        timeout_failover_used = False
         while True:
             try:
-                service = self.service_pool.get_service(exclude=rate_limited)
+                service = self.service_pool.get_service(exclude=list(skipped))
             except RuntimeError as e:
+                if last_error is not None and "no_llm_service" in str(e):
+                    raise last_error
                 if "llm_rate_limited" in str(e) or "no_llm_service" in str(e):
                     raise RuntimeError("llm_rate_limited") from e
                 raise
@@ -68,16 +71,20 @@ class LLMService:
                 error_str = str(e).lower()
                 if re.search(r"(?<!\d)429(?!\d)", error_str) or "quota" in error_str or "rate limit" in error_str:
                     self.service_pool.mark_rate_limited(service["name"])
-                    rate_limited.add(service["name"])
+                    skipped.add(service["name"])
                     logger.warning(f"LLM RATE-LIMIT | task={task_name} | service={service['name']} | {duration:.2f}s")
                     continue
                 timed_out = "timeout" in error_str or "timed out" in error_str
                 server_error = re.search(r"(?<!\d)(500|502|503|504)(?!\d)", error_str) is not None
                 network = (not timed_out) and ("connection" in error_str or "connect" in error_str or server_error)
-                if network and not retried_network:
-                    retried_network = True
+                if network or timed_out:
+                    skipped.add(service["name"])
+                    last_error = e
                     logger.warning(f"LLM NET-ERR | task={task_name} | service={service['name']} | {duration:.2f}s | {e}")
-                    time.sleep(1)
+                    if timed_out and timeout_failover_used:
+                        raise
+                    if timed_out:
+                        timeout_failover_used = True
                     continue
                 logger.error(f"LLM FAILED | task={task_name} | service={service['name']} | {duration:.2f}s | {e}")
                 raise
