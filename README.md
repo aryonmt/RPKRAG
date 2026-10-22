@@ -25,7 +25,6 @@ RPKRAG/
 ├── pyproject.toml                      # Python package config, dependencies, Ruff linter rules, and Pytest markers
 ├── .env.example                        # Environment variable template (pre-configured with Docker container paths)
 ├── llm_services.example.json           # Template for the OpenAI-compatible LLM service pool
-├── AGENTS.md                           # Architectural invariants and engineering rules for coding agents
 ├── README.md                           # Project documentation
 │
 ├── resources/

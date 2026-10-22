@@ -17,6 +17,10 @@ build/
 dist/
 web/next-env.d.ts
 
+# Local agent notes
+AGENTS.md
+web/AGENTS.md
+
 # Secrets
 .env
 .env.*
