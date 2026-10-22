@@ -1,0 +1,42 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.1
+    container_name: document_qa_qdrant
+    ports:
+      - "127.0.0.1:6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      DATABASE_PATH: /app/data/app.db
+      UPLOAD_DIR: /app/data/uploads
+      EMBEDDING_MODEL_DIR: /app/models/paraphrase-multilingual-MiniLM-L12-v2-onnx-Q
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./llm_services.json:/app/llm_services.json:ro
+    depends_on:
+      - qdrant
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  qdrant_data:

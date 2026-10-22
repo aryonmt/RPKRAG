@@ -1,0 +1,8 @@
+[
+  {
+    "name": "example",
+    "base_url": "https://api.example.com/v1",
+    "api_key": "put-the-key-here",
+    "model": "model-name"
+  }
+]

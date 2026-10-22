@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+web/next-env.d.ts
+
+# Secrets
+.env
+.env.*
+!.env.example
+llm_services.json
+
+# Local runtime
+data/
+models/
+*.db
+*.sqlite
+*.sqlite3
+*.onnx
+
+# Generated dumps and stale notes
+src_dump.txt
+.project_dump.md
+STATE.md
+
+# Evaluation sets, traces, and reports stay on the machine that ran them.
+eval/
+
+# Sample files other than the ten large texts and their answers
+docs/samples/*
+!docs/samples/large-samples/
+!docs/samples/large-samples/**
+
+# OS
+.DS_Store
+Thumbs.db

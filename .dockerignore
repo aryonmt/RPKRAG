@@ -1,0 +1,13 @@
+.venv
+.git
+web
+data
+models
+eval
+tests
+scripts
+docs
+**/*.pyc
+**/__pycache__
+.env
+llm_services.json
